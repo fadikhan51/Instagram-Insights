@@ -9,9 +9,9 @@ class HomeScreenDetailsSection extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomScrollView(
       slivers: [
-        SliverToBoxAdapter(
+        const SliverToBoxAdapter(
           child: Padding(
-            padding: const EdgeInsets.only(left: 20.0, top: 20),
+            padding: EdgeInsets.only(left: 20.0, top: 20),
             child: Text(
               "Get Started",
               style: TextStyle(
@@ -44,7 +44,7 @@ class HomeScreenDetailsSection extends StatelessWidget {
                 return PlantCard(
                   title: 'Plant $index',
                   imageUrl:
-                      'assets/plant_image.jpg', // Replace with your image asset
+                      'assets/${(index % 3) + 1}.png', // Replace with your image asset
                 );
               },
               childCount: 6, // Number of cards

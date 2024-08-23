@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class PlantCardGrid extends StatelessWidget {
   @override
@@ -65,18 +66,13 @@ class PlantCard extends StatelessWidget {
               left: 16,
               child: Text(
                 title,
-                style: const TextStyle(
-                  color: Colors.white,  // Text color contrasting with the background
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  shadows: [
-                    Shadow(
-                      blurRadius: 4,
-                      color: Colors.black54,
-                      offset: Offset(2, 2),
-                    ),
-                  ],
-                ),
+                style: GoogleFonts.montserrat(
+                  textStyle : const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+
+                  ),
+                )
               ),
             ),
           ],
