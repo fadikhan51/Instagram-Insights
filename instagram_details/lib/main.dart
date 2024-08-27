@@ -33,9 +33,10 @@ import 'InstaScreens/UnfollowedScreen.dart';
 import 'PersonalScreens/AccountInfoScreen.dart';
 import 'PersonalScreens/PersonalInfoScreen.dart';
 import 'PersonalScreens/ProfileChangesScreen.dart';
+import 'Screens/HelpTest.dart';
 
 void main() {
   runApp(MaterialApp(
-    home: DownloadTest(),
+    home: WebViewScreen(),
   ));
 }

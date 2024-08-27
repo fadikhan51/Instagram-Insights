@@ -27,7 +27,7 @@ class DownloadTest extends StatelessWidget{
   //
   //   await dl.whenDownloadComplete(url);
 
-    var dir = Directory('/data/user/0/com.example.instagram_details/app_flutter/media/posts/202401/');
+    var dir = Directory('/data/user/0/com.example.instagram_details/app_flutter/1724755076158/');
     var contents = dir.listSync();
     for (var entity in contents) {
       print(entity);

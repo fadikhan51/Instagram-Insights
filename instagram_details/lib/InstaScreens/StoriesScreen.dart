@@ -1,6 +1,5 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
@@ -11,19 +10,21 @@ class StoriesScreen extends StatelessWidget {
   final String jsonData;
   final String folderName;
 
-  Future<String> _getAbsolutePath(String uri) async {
+  Future<String> _getAbsolutePath(String? uri) async {
+    if (uri == null) return ''; // Return an empty path if URI is null
     final directory = await getApplicationDocumentsDirectory();
     return '${directory.path}/$folderName/$uri';
   }
 
-  String _formatTimestamp(int timestamp) {
+  String _formatTimestamp(int? timestamp) {
+    if (timestamp == null) return ''; // Return empty string if timestamp is null
     final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
     return DateFormat('yyyy-MM-dd HH:mm:ss').format(date);
   }
 
   @override
   Widget build(BuildContext context) {
-    List<dynamic> stories = json.decode(jsonData)["ig_stories"];
+    List<dynamic> stories = json.decode(jsonData)["ig_stories"] ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -35,7 +36,7 @@ class StoriesScreen extends StatelessWidget {
           final story = stories[index];
           final storyTitle = story['title'] ?? '';
           final creationTimestamp = _formatTimestamp(story['creation_timestamp']);
-          final mediaMetadata = story['media_metadata'];
+          final mediaMetadata = story['media_metadata'] ?? {};
 
           return Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -66,25 +67,22 @@ class StoriesScreen extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const CircularProgressIndicator();
-                  } else if (snapshot.hasError) {
+                  } else if (snapshot.hasError || snapshot.data!.isEmpty) {
                     return const Text('Error loading image');
                   } else {
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        if (snapshot.hasData)
+                        if (snapshot.hasData && snapshot.data!.isNotEmpty)
                           Image.file(
                             File(snapshot.data!),
                             fit: BoxFit.cover,
                           ),
-                        if (mediaMetadata != null &&
-                            mediaMetadata['photo_metadata'] != null &&
-                            mediaMetadata['photo_metadata']['exif_data'] !=
-                                null)
+                        if (mediaMetadata['photo_metadata'] != null &&
+                            mediaMetadata['photo_metadata']['exif_data'] != null)
                           Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: _buildExifData(
-                                mediaMetadata['photo_metadata']['exif_data']),
+                            child: _buildExifData(mediaMetadata['photo_metadata']['exif_data']),
                           ),
                       ],
                     );
@@ -98,13 +96,14 @@ class StoriesScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildExifData(List<dynamic> exifData) {
+  Widget _buildExifData(List<dynamic>? exifData) {
+    if (exifData == null) return const SizedBox(); // Return empty widget if exifData is null
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: exifData.map((data) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
-          children: data.entries.map<Widget>((entry) {
+          children: (data as Map<String, dynamic>).entries.map<Widget>((entry) {
             return Text('${entry.key}: ${entry.value}');
           }).toList(),
         );

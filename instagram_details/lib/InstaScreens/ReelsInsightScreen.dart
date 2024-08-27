@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:video_player/video_player.dart';
 
-
 class ReelsInsightsScreen extends StatelessWidget {
   const ReelsInsightsScreen({super.key, required this.data, required this.folderName});
 
@@ -14,7 +13,9 @@ class ReelsInsightsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     // Parse the JSON string
     Map<String, dynamic> reelsData = jsonDecode(data);
-    List<dynamic> reels = reelsData['organic_insights_reels'];
+    debugPrint("THIS IS THE REELS DATA");
+    debugPrint(data);
+    List<dynamic> reels = reelsData['organic_insights_reels'] ?? [];
 
     return Scaffold(
       appBar: AppBar(
@@ -24,11 +25,12 @@ class ReelsInsightsScreen extends StatelessWidget {
         itemCount: reels.length,
         itemBuilder: (context, index) {
           var reel = reels[index];
-          var mediaData = reel['media_map_data']['Media Thumbnail'];
-          var stringData = reel['string_map_data'];
+          var mediaData = reel['media_map_data']?['Media Thumbnail'] ?? {};  // Use null-aware operator and provide empty map if null
+          var stringData = reel['string_map_data'] ?? {};  // Provide empty map if null
 
           // Parse the upload timestamp
-          var timestamp = int.parse(stringData['Upload Timestamp']['timestamp'].toString());
+          var timestampString = stringData['Upload Timestamp']?['timestamp']?.toString() ?? '0';
+          var timestamp = int.tryParse(timestampString) ?? 0;
           var formattedTime = DateFormat.yMMMd().add_jm().format(DateTime.fromMillisecondsSinceEpoch(timestamp * 1000));
 
           return Card(
@@ -38,20 +40,20 @@ class ReelsInsightsScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  VideoPlayerWidget(uri: mediaData['uri']),
+                  VideoPlayerWidget(uri: mediaData['uri'] ?? ''),
                   const SizedBox(height: 8),
                   Text(mediaData['title'] ?? '', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   const SizedBox(height: 4),
-                  Text(stringData['Caption']['value'] ?? ''),
+                  Text(stringData['Caption']?['value'] ?? ''),
                   const SizedBox(height: 8),
                   Text('Upload Timestamp: $formattedTime'),
-                  Text('Duration: ${stringData['Duration']['value']} seconds'),
-                  Text('Accounts Reached: ${stringData['Accounts reached']['value']}'),
-                  Text('Instagram Plays: ${stringData['Instagram Plays']['value']}'),
-                  Text('Instagram Likes: ${stringData['Instagram Likes']['value']}'),
-                  Text('Instagram Comments: ${stringData['Instagram Comments']['value']}'),
-                  Text('Instagram Shares: ${stringData['Instagram Shares']['value']}'),
-                  Text('Instagram Saves: ${stringData['Instagram Saves']['value']}'),
+                  Text('Duration: ${stringData['Duration']?['value'] ?? 'N/A'} seconds'),
+                  Text('Accounts Reached: ${stringData['Accounts reached']?['value'] ?? 'N/A'}'),
+                  Text('Instagram Plays: ${stringData['Instagram Plays']?['value'] ?? 'N/A'}'),
+                  Text('Instagram Likes: ${stringData['Instagram Likes']?['value'] ?? 'N/A'}'),
+                  Text('Instagram Comments: ${stringData['Instagram Comments']?['value'] ?? 'N/A'}'),
+                  Text('Instagram Shares: ${stringData['Instagram Shares']?['value'] ?? 'N/A'}'),
+                  Text('Instagram Saves: ${stringData['Instagram Saves']?['value'] ?? 'N/A'}'),
                 ],
               ),
             ),
@@ -65,7 +67,7 @@ class ReelsInsightsScreen extends StatelessWidget {
 class VideoPlayerWidget extends StatefulWidget {
   final String uri;
 
-  VideoPlayerWidget({super.key, required this.uri});
+  const VideoPlayerWidget({super.key, required this.uri});
 
   @override
   _VideoPlayerWidgetState createState() => _VideoPlayerWidgetState();
@@ -77,7 +79,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
   @override
   void initState() {
     super.initState();
-    _controller = VideoPlayerController.network(widget.uri)
+    _controller = VideoPlayerController.networkUrl(Uri(path: widget.uri))
       ..initialize().then((_) {
         setState(() {});
       });
@@ -85,17 +87,19 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _controller.value.isInitialized
+    return (_controller.value.isInitialized && widget.uri != '')
         ? AspectRatio(
       aspectRatio: _controller.value.aspectRatio,
       child: VideoPlayer(_controller),
     )
-        : const Center(child: CircularProgressIndicator());
+        : (widget.uri != '')
+        ? const Center(child: CircularProgressIndicator())
+        : const SizedBox(height: 10);
   }
 
   @override
   void dispose() {
-    super.dispose();
     _controller.dispose();
+    super.dispose();
   }
 }
