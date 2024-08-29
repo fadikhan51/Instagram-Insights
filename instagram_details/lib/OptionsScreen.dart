@@ -362,23 +362,3 @@ class _CustomButtonState extends State<CustomButton> {
     );
   }
 }
-
-class NextScreen extends StatelessWidget {
-  final String data;
-  final String folderName;
-
-  const NextScreen({Key? key, required this.data, required this.folderName})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text("Next Screen"),
-      ),
-      body: Center(
-        child: Text('Data: $data\nFolder: $folderName'),
-      ),
-    );
-  }
-}
