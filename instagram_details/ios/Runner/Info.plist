@@ -51,5 +51,13 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSPhotoLibraryUsageDescription</key>
+    <string>This app needs access to your photo library to upload and manage images.</string>
+    <key>NSCameraUsageDescription</key>
+    <string>This app needs access to your camera to capture photos and videos.</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>This app needs access to your microphone for recording audio.</string>
+    <key>NSDocumentsFolderUsageDescription</key>
+    <string>This app needs access to your documents folder to manage and save files.</string>
 </dict>
 </plist>
