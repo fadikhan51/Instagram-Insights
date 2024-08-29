@@ -23,6 +23,7 @@ class WebViewScreen extends StatefulWidget {
 class _WebViewScreenState extends State<WebViewScreen> {
   late WebViewController controller;
   bool isDownloading = false;
+  bool isLoading = false;
   double downloadProgress = 0.0;
   List<String> recentExtractedFiles = []; // To store recent extracted file names (timestamps)
   List<String> imgList = [];
@@ -30,17 +31,25 @@ class _WebViewScreenState extends State<WebViewScreen> {
   @override
   void initState() {
     super.initState();
-    _initializePreferences(); // Call the async initialization method
+    _initializePreferences();
     _requestStoragePermission();
-    // UserCheckUtil.checkIfNewUser(context); // Check if user is new
 
     controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
+            setState(() {
+              isLoading = true;
+            });
             debugPrint('Page started loading: $url');
-            _handlePageStarted(url); // Move the logic to handle page loading to another method
+            _handlePageStarted(url);
+          },
+          onPageFinished: (String url) {
+            setState(() {
+              isLoading = false;
+            });
+            debugPrint('Page finished loading: $url');
           },
           onNavigationRequest: (NavigationRequest request) {
             if (request.url.contains('bigzipfiles') && request.url.contains('download')) {
@@ -214,8 +223,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
               icon: const Icon(Icons.download_done),
               onPressed: () => _showRecentFilesDialog(context),
             ),
-          if (isDownloading)
-            const Text("")
+          if (isDownloading) const Text("")
         ],
       ),
       body: Stack(
@@ -248,19 +256,41 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 ),
               ],
             ),
+          // Show loading indicator when WebView is reloading
+          if (isLoading)
+            Center(
+              child: CircularProgressIndicator(),
+            ),
+          // Refresh button at the bottom left corner
+          Positioned(
+            bottom: 20,
+            left: 20,
+            child: FloatingActionButton(
+              heroTag: 'refresh',
+              onPressed: () {
+                setState(() {
+                  isLoading = true; // Show loading indicator when refresh is initiated
+                });
+                controller.reload(); // Reload the WebView page
+              },
+              child: const Icon(Icons.refresh),
+            ),
+          ),
         ],
       ),
       floatingActionButton: FloatingActionButton(
+        heroTag: 'help',
         onPressed: () async {
           print(imgList);
           UserCheckUtil.showHelpDialog(context, imgList);
         },
-        child: Icon(Icons.help),
+        child: const Icon(Icons.help),
       ),
     );
   }
 
-  // Method to show the recent extracted files dialog
+
+
   void _showRecentFilesDialog(BuildContext context) {
     showDialog(
       context: context,
@@ -276,6 +306,10 @@ class _WebViewScreenState extends State<WebViewScreen> {
                 String formattedName = _formatTimestamp(recentExtractedFiles[index]);
                 return ListTile(
                   title: Text(formattedName),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => _confirmDelete(context, recentExtractedFiles[index]),
+                  ),
                   onTap: () {
                     Navigator.of(context).pop(); // Close the dialog
                     Navigator.of(context).push(
@@ -299,5 +333,50 @@ class _WebViewScreenState extends State<WebViewScreen> {
         );
       },
     );
+  }
+
+// Helper method to confirm deletion
+  void _confirmDelete(BuildContext context, String folderName) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Delete'),
+          content: const Text('Are you sure you want to delete this data?'),
+          actions: [
+            TextButton(
+              child: const Text('Cancel'),
+              onPressed: () {
+                Navigator.of(context).pop(); // Close the confirmation dialog
+              },
+            ),
+            TextButton(
+              child: const Text('Delete'),
+              onPressed: () async {
+                await _deleteData(folderName);
+                Navigator.of(context).pop(); // Close the confirmation dialog
+                Navigator.of(context).pop(); // Close the files dialog
+                _loadRecentExtractedFiles(); // Refresh the list of recent extracted files
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+// Method to delete data from the document directory
+  Future<void> _deleteData(String folderName) async {
+    try {
+      final dir = await getApplicationDocumentsDirectory();
+      final directoryToDelete = Directory('${dir.path}/$folderName');
+      if (directoryToDelete.existsSync()) {
+        directoryToDelete.deleteSync(recursive: true);
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Failed to delete the data.')),
+      );
+    }
   }
 }

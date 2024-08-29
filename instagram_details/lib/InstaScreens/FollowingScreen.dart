@@ -3,8 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class FollowersScreen extends StatelessWidget {
-  const FollowersScreen({
+
+class FollowingScreen extends StatelessWidget {
+  const FollowingScreen({
     super.key,
     required this.jsonData,
     required this.folderName,
@@ -13,13 +14,8 @@ class FollowersScreen extends StatelessWidget {
   final String jsonData;
   final String folderName;
 
-  List<dynamic> _parseJsonData() {
-    try {
-      return json.decode(jsonData) as List<dynamic>;
-    } catch (e) {
-      // If JSON parsing fails, return an empty list
-      return [];
-    }
+  Map<String, dynamic> _parseJsonData() {
+    return json.decode(jsonData) as Map<String, dynamic>;
   }
 
   Future<void> _launchURL(BuildContext context, String? url) async {
@@ -34,25 +30,21 @@ class FollowersScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final followersData = _parseJsonData();
+    final data = _parseJsonData();
+    final followingData = data['relationships_following'] as List<dynamic>;
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Followers'),
+        title: const Text('Following'),
       ),
       body: ListView.builder(
-        itemCount: followersData.length,
+        itemCount: followingData.length,
         itemBuilder: (context, index) {
-          final followerData = followersData[index]['string_list_data'] as List<dynamic>?;
-          if (followerData == null || followerData.isEmpty) {
-            return const SizedBox.shrink();
-          }
+          final following = followingData[index]['string_list_data'][0];
 
-          final follower = followerData[0];
-
-          final String? username = follower['value'] as String?;
-          final String? href = follower['href'] as String?;
-          final int? timestamp = follower['timestamp'] as int?;
+          final String? username = following['value'] as String?;
+          final String? href = following['href'] as String?;
+          final int? timestamp = following['timestamp'] as int?;
 
           final String formattedDate;
           if (timestamp != null) {

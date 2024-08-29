@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class FollowersScreen extends StatelessWidget {
-  const FollowersScreen({
+class PendingFollowRequestScreen extends StatelessWidget {
+  const PendingFollowRequestScreen({
     super.key,
     required this.jsonData,
     required this.folderName,
@@ -15,7 +15,8 @@ class FollowersScreen extends StatelessWidget {
 
   List<dynamic> _parseJsonData() {
     try {
-      return json.decode(jsonData) as List<dynamic>;
+      final decodedJson = json.decode(jsonData);
+      return decodedJson['relationships_follow_requests_sent'] as List<dynamic>? ?? [];
     } catch (e) {
       // If JSON parsing fails, return an empty list
       return [];
@@ -38,17 +39,19 @@ class FollowersScreen extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Followers'),
+        title: const Text('Pending Requests'),
       ),
       body: ListView.builder(
         itemCount: followersData.length,
         itemBuilder: (context, index) {
-          final followerData = followersData[index]['string_list_data'] as List<dynamic>?;
-          if (followerData == null || followerData.isEmpty) {
+          final followerListData = followersData[index]['string_list_data'] as List<dynamic>?;
+
+          if (followerListData == null || followerListData.isEmpty) {
+            // Return an empty container if 'string_list_data' is missing or empty
             return const SizedBox.shrink();
           }
 
-          final follower = followerData[0];
+          final follower = followerListData[0];
 
           final String? username = follower['value'] as String?;
           final String? href = follower['href'] as String?;
@@ -57,7 +60,7 @@ class FollowersScreen extends StatelessWidget {
           final String formattedDate;
           if (timestamp != null) {
             final date = DateTime.fromMillisecondsSinceEpoch(timestamp * 1000);
-            formattedDate = DateFormat.yMMMd().format(date);
+            formattedDate = DateFormat('d MMM yyyy').format(date);
           } else {
             formattedDate = 'Unknown date'; // Placeholder for null timestamp
           }
@@ -66,7 +69,7 @@ class FollowersScreen extends StatelessWidget {
             leading: CircleAvatar(
               backgroundColor: Colors.blue,
               child: Text(
-                username?.isNotEmpty == true ? username![0].toUpperCase() : '?',
+                username?.isNotEmpty == true ? username![0].toUpperCase() : '?', // Handle null and empty username
                 style: const TextStyle(color: Colors.white),
               ),
             ),

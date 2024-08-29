@@ -22,7 +22,7 @@ import 'InstaScreens/AccountsReach.dart';
 import 'InstaScreens/AudienceInsightsScreen.dart';
 import 'InstaScreens/CountdownScreen.dart';
 import 'InstaScreens/FollowersScreen.dart';
-import 'InstaScreens/Following.dart';
+import 'InstaScreens/FollowingScreen.dart';
 import 'InstaScreens/LikedCommentsScreen.dart';
 import 'InstaScreens/LiveVideoScreen.dart';
 import 'InstaScreens/MessageScreen.dart';
