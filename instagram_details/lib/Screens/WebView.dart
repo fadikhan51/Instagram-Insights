@@ -50,11 +50,24 @@ class _WebViewScreenState extends State<WebViewScreen> {
               isLoading = false;
             });
             debugPrint('Page finished loading: $url');
+
+            // Redirect when 'info_and_permissions/' page finishes loading
+            if (url == 'https://accountscenter.instagram.com/info_and_permissions/') {
+              controller.loadRequest(Uri.parse('https://www.instagram.com/accounts/settings/'));
+            }
           },
           onNavigationRequest: (NavigationRequest request) {
+            debugPrint("Navigation Request received for ${request.url}");
+
             if (request.url.contains('bigzipfiles') && request.url.contains('download')) {
               print(request.url);
               downloadZipinUI(request.url);
+              return NavigationDecision.prevent;
+            } else if (request.url == 'https://www.instagram.com/') {
+              controller.loadRequest(Uri.parse('https://accountscenter.instagram.com/info_and_permissions/dyi/'));
+              return NavigationDecision.prevent;
+            } else if (request.url == 'https://accountscenter.instagram.com/info_and_permissions/') {
+              controller.loadRequest(Uri.parse('https://www.instagram.com/accounts/settings/'));
               return NavigationDecision.prevent;
             }
             return NavigationDecision.navigate;
@@ -63,6 +76,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
       )
       ..loadRequest(Uri.parse('https://accountscenter.instagram.com/info_and_permissions/dyi/'));
     _loadRecentExtractedFiles();
+
   }
 
   Future<void> _initializePreferences() async {
